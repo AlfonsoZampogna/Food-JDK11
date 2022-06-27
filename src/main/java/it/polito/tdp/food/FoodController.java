@@ -5,7 +5,10 @@
 package it.polito.tdp.food;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
+
+import it.polito.tdp.food.model.Connessi;
 import it.polito.tdp.food.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -40,7 +43,7 @@ public class FoodController {
     private Button btnCammino; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxPorzioni"
-    private ComboBox<?> boxPorzioni; // Value injected by FXMLLoader
+    private ComboBox<String> boxPorzioni; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtResult"
     private TextArea txtResult; // Value injected by FXMLLoader
@@ -48,20 +51,63 @@ public class FoodController {
     @FXML
     void doCammino(ActionEvent event) {
     	txtResult.clear();
-    	txtResult.appendText("Cerco cammino peso massimo...");
+    	String tipo = this.boxPorzioni.getValue();
+    	if(tipo==null) {
+    		txtResult.appendText("Inserisci un tipo di porzione dopo aver creato il grafo!");
+    	}
+    	String step = this.txtPassi.getText();
+    	try {
+    		int passi = Integer.parseInt(step);
+    		if(passi<=0) {
+    			txtResult.appendText("Inserisci un numero di passi maggiore di 0");
+    			return;
+    		}
+    		List<String> best = this.model.getPercorsoMigliore(passi, tipo);
+    		txtResult.appendText("peso migliore = "+this.model.getPesoBest());
+    		txtResult.appendText("\n percorso migliore : ");
+    		for(String s : best)
+    			txtResult.appendText(s+" ; ");
+    		
+    	}catch(NumberFormatException e){
+    		e.printStackTrace();
+    		txtResult.appendText("Inserisci un numero di passi maggiore di 0");
+    	}
     }
 
     @FXML
     void doCorrelate(ActionEvent event) {
     	txtResult.clear();
-    	txtResult.appendText("Cerco porzioni correlate...");
-    	
+        String tipo = this.boxPorzioni.getValue();
+    	if(tipo==null) {
+    		txtResult.appendText("Inserisci un tipo di porzione dopo aver creato il grafo!");
+    	}
+    	List<Connessi> tipiConnessi = this.model.getConnessi(tipo);
+    	if(tipiConnessi==null)
+    		return;
+    	for(Connessi c : tipiConnessi)
+    		txtResult.appendText(c+"\n");
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
     	txtResult.clear();
-    	txtResult.appendText("Creazione grafo...");
+    	String kcal = this.txtCalorie.getText();
+    	try {
+    		int cal = Integer.parseInt(kcal);
+    		if(cal<=0) {
+    			txtResult.appendText("inserisci un numero maggiore di zero in Calorie");
+    			return;
+    		}
+    		this.model.creaGrafo(cal);
+    		txtResult.appendText("#VERTICI : "+this.model.getNVertici());
+    		txtResult.appendText("\n#ARCHI : "+this.model.getNArchi());
+    		
+    		this.boxPorzioni.getItems().addAll(this.model.getVertici());
+    		
+    	}catch (NumberFormatException e) {
+    		e.printStackTrace();
+    		txtResult.appendText("inserisci un numero maggiore di zero in Calorie");
+    	}
     	
     }
 
